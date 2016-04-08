@@ -67,21 +67,21 @@ class LemiProtocol(LineReceiver):
     @exportRpc("control-led")
     def controlLed(self, status):
         if status:
-            print "turn on LED"
+            print("turn on LED")
             self.transport.write('1')
         else:
-            print "turn off LED"
+            print("turn off LED")
             self.transport.write('0')
 
 
     @exportRpc("send-command")
     def sendCommand(self, command):
         if not command == "":
-            print command
+            print(command)
             #self.transport.write(command)
 
     def connectionMade(self):
-        log.msg('%s connected.' % self.sensor)
+        log.msg('{:s} connected.'.format(self.sensor))
 
     def connectionLost(self):
         log.msg('LEMI connection lost. Perform steps to restart it!')
@@ -118,7 +118,7 @@ class LemiProtocol(LineReceiver):
     def processLemiData(self, data):
         """Convert raw ADC counts into SI units as per datasheets"""
         if len(data) != 153:
-            log.err('LEMI - Protocol: Unable to parse data of length %i' % len(data))
+            log.err('LEMI - Protocol: Unable to parse data of length {:i}'.format(len(data)))
 
         """ TIMESHIFT between serial output (and thus NTP time) and GPS timestamp """
         timedelay = 0.0   ## in sec, most likely in order of 0.1 sec
@@ -138,7 +138,7 @@ class LemiProtocol(LineReceiver):
             os.makedirs(path)
 
         packcode = "<4cb6B8hb30f3BcBcc5hL"
-        header = "LemiBin %s %s %s %s %s %s %d\n" % (self.sensor, '[x,y,z,t1,t2]', '[X,Y,Z,T_sensor,T_elec]', '[nT,nT,nT,deg_C,deg_C]', '[0.001,0.001,0.001,100,100]', packcode, struct.calcsize(packcode))
+        header = "LemiBin {:s} {:s} {:s} {:s} {:s} {:s} {:d}\n".format(self.sensor, '[x,y,z,t1,t2]', '[X,Y,Z,T_sensor,T_elec]', '[nT,nT,nT,deg_C,deg_C]', '[0.001,0.001,0.001,100,100]', packcode, struct.calcsize(packcode))
 
         # save binary raw data to file
         lemipath = os.path.join(path,self.sensor+'_'+date+".bin")
@@ -187,10 +187,10 @@ class LemiProtocol(LineReceiver):
         self.gpsstatelst = self.gpsstatelst[-10:]
         self.gpsstate1 = max(set(self.gpsstatelst),key=self.gpsstatelst.count)
         if not self.gpsstate1 == self.gpsstate2:
-            log.msg('LEMI - Protocol: GPSSTATE changed to %s .'  % gpsstat)
+            log.msg('LEMI - Protocol: GPSSTATE changed to {:s} .'.format(gpsstat))
         self.gpsstate2 = self.gpsstate1
 
-        #print "GPSSTAT", gpsstat
+        #print("GPSSTAT {}".format(gpsstat))
         # important !!! change outtime to lemi reading when GPS is running
         try:
             if self.gpsstate2 == 'P':
@@ -220,7 +220,7 @@ class LemiProtocol(LineReceiver):
         return evt1,evt3,evt4,evt11,evt12,evt13,evt31,evt32,evt60,evt99
 
     def dataReceived(self, data):
-        #print "Lemi data here!", self.buffer
+        #print("Lemi data here! {}".format(self.buffer))
         dispatch_url =  "http://example.com/"+self.hostname+"/lemi#"+self.sensor+"-value"
         flag = 0
         WSflag = 0
@@ -232,11 +232,11 @@ class LemiProtocol(LineReceiver):
         if not (self.buffer).startswith(self.soltag):
             lemisearch = (self.buffer).find(self.soltag, 6)
             if not lemisearch == -1:
-                print "Lemiserach", lemisearch, self.buffer
+                print("Lemiserach {} {}".format(lemisearch, self.buffer))
                 self.buffer = self.buffer[lemisearch:len(self.buffer)]
         if len(self.buffer) == 153:
             # Process data
-            print self.buffer
+            print(self.buffer)
             self.buffer = ''
         """
 
@@ -256,9 +256,9 @@ class LemiProtocol(LineReceiver):
 
             if len(self.buffer) > 153:
                 if debug:
-                    log.msg('LEMI - Protocol: Warning: Bufferlength (%s) exceeds 153 characters, fixing...' % len(self.buffer))
+                    log.msg('LEMI - Protocol: Warning: Bufferlength ({:s}) exceeds 153 characters, fixing...'.format(len(self.buffer)))
                 lemisearch = (self.buffer).find(self.soltag)
-                #print '1', lemisearch
+                #print('1 {}'.format(lemisearch))
                 if (self.buffer).startswith(self.soltag):
                     datatest = len(self.buffer)%153
                     dataparts = int(len(self.buffer)/153)
@@ -269,7 +269,7 @@ class LemiProtocol(LineReceiver):
                             split_data_string = self.buffer[0:153]
                             if (split_data_string).startswith(self.soltag):
                                 if debug:
-                                    log.msg('LEMI - Protocol: Processing data part # %s in string...' % (str(i+1)))
+                                    log.msg('LEMI - Protocol: Processing data part # {:s} in string...'.format(str(i+1)))
                                 evt1,evt3,evt4,evt11,evt12,evt13,evt31,evt32,evt60,evt99 = self.processLemiData(split_data_string)
                                 WSflag = 2
                                 self.buffer = self.buffer[153:len(self.buffer)]
@@ -288,7 +288,7 @@ class LemiProtocol(LineReceiver):
                                 log.msg('LEMI - Protocol: No header found. Deleting buffer.')
                                 self.buffer = ''
                             else:
-                                log.msg('LEMI - Protocol: String contains bad data (%s bits). Deleting.' % len(self.buffer[:lemisearch]))
+                                log.msg('LEMI - Protocol: String contains bad data ({:s} bits). Deleting.'.format(len(self.buffer[:lemisearch])))
                                 self.buffer = self.buffer[lemisearch:len(self.buffer)]
                                 flag = 1
                                 break
@@ -301,7 +301,7 @@ class LemiProtocol(LineReceiver):
                         log.msg('LEMI - Protocol: No header found. Deleting buffer.')
                         self.buffer = ''
                     else:
-                        log.msg('LEMI - Protocol: Bad data (%s bits) deleted. New bufferlength: %s' % (lemisearch,len(self.buffer)))
+                        log.msg('LEMI - Protocol: Bad data ({:s} bits) deleted. New bufferlength: {:s}'.format(lemisearch,len(self.buffer)))
                         self.buffer = self.buffer[lemisearch:len(self.buffer)]
                         flag = 1
 
@@ -316,7 +316,7 @@ class LemiProtocol(LineReceiver):
             for ind, elem in enumerate(evt11):
                 t1 = evt1+timedelta(seconds=0.1*ind)
                 t2 = evt4+timedelta(seconds=0.1*ind)
-                #print t1, t2
+                #print("{} {}".format(t1, t2))
                 evt1a = {'id': 1, 'value': datetime.strftime(t1,"%Y-%m-%d %H:%M:%S.%f")}
                 #evt3a = {'id': 1, 'value': datetime.strftime(t1,"%H:%M:%S.%f")}
                 evt4a = {'id': 4, 'value': datetime.strftime(t2,"%Y-%m-%d %H:%M:%S.%f")}

@@ -70,25 +70,25 @@ class EnvProtocol(LineReceiver):
         self.sensor = sensor
         self.hostname = socket.gethostname()
         self.outputdir = outputdir
-        print self.sensor
+        print(self.sensor)
 
     @exportRpc("control-led")
     def controlLed(self, status):
         if status:
-            print "turn on LED"
+            print("turn on LED")
             self.transport.write('1')
         else:
-            print "turn off LED"
+            print("turn off LED")
             self.transport.write('0')
 
     @exportRpc("send-command")
     def sendCommand(self, command):
         if not command == "":
-            print command
+            print(command)
             #self.transport.write(command)
 
     def connectionMade(self):
-        log.msg('%s connected.' % self.sensor)
+        log.msg('{:s} connected.'.format(self.sensor))
 
     def processEnvData(self, data):
         """Convert raw ADC counts into SI units as per datasheets"""
@@ -102,7 +102,7 @@ class EnvProtocol(LineReceiver):
         #header = "# MagPyBin, sensor_id, [parameterlist], [unit-conversion-list], packing string, length"
         packcode = '6hLllL'
         sensorid = self.sensor
-        header = "# MagPyBin %s %s %s %s %s %s %d" % (sensorid, '[t1,t2,var1]', '[T,DewPoint,RH]', '[deg_C,deg_C,per rh]', '[1000,1000,1000]', packcode, struct.calcsize(packcode))
+        header = "# MagPyBin {:s} {:s} {:s} {:s} {:s} {:s} {:d}".format(sensorid, '[t1,t2,var1]', '[T,DewPoint,RH]', '[deg_C,deg_C,per rh]', '[1000,1000,1000]', packcode, struct.calcsize(packcode))
 
         valrh = re.findall(r'\d+',data[0])
         if len(valrh) > 1:
@@ -155,7 +155,7 @@ class EnvProtocol(LineReceiver):
             if len(data) == 3:
                 evt0,evt1,evt3,evt30,evt33,evt34,evt99 = self.processEnvData(data)
             else:
-                print 'Data error'
+                print('Data error')
 
             ## publish event to all clients subscribed to topic
             ##
@@ -194,8 +194,8 @@ class EnvProtocol(LineReceiver):
             except:
                 log.err("Missing EOL")
                 pass
-            #log.msg("Analog value: %s" % str(evt4))
+            #log.msg("Analog value: {:s}".format(str(evt4)))
 
         except ValueError:
-            log.err('Unable to parse data %s' % line)
+            log.err('Unable to parse data {:s}'.format(line))
             #return

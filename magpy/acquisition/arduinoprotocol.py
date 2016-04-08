@@ -129,7 +129,7 @@ class ArduinoProtocol(LineReceiver):
         self.board = sensor
         self.hostname = socket.gethostname()
         self.outputdir = outputdir
-        print "Running on board", self.board
+        print("Running on board {}".format(self.board))
         self.sensor = ''
         self.sensordict = {}
         self.eventstring = ''
@@ -154,13 +154,13 @@ class ArduinoProtocol(LineReceiver):
     def extendarduinolist(self, idnum):
         martasdir = [path for path, dirs, files in os.walk("/home") if path.endswith('MARTAS')][0]
         arduinosensorfile = os.path.join(martasdir,'arduinolist.csv')
-        log.msg('Checking Arduinofile: %s' % arduinosensorfile)
+        log.msg('Checking Arduinofile: {:s}'.format(arduinosensorfile))
         arduinolist = []
         sensorelement = []
         try:
             arduinolist = self.loadarduinolist(arduinosensorfile)
             sensorelement = [elem[0] for elem in arduinolist]
-            print "Liste", sensorelement
+            print("List {}".format(sensorelement))
         except:
             log.msg('Arduino: No Sensor list so far -or- Error while getting sensor list')
             pass
@@ -169,7 +169,7 @@ class ArduinoProtocol(LineReceiver):
             self.savearduinolist(arduinosensorfile,arduinolist)
 
     def connectionMade(self):
-        log.msg('%s connected.' % self.board)
+        log.msg('{:s} connected.'.format(self.board))
 
     def processArduinoData(self, idnum, data):
         """Convert raw ADC counts into SI units as per datasheets"""
@@ -199,7 +199,7 @@ class ArduinoProtocol(LineReceiver):
                 packcode = packcode + 'l'
                 multiplier.append(10000)
             except:
-                log.msg('Error while appending data to file (non-float?): %s ' % dat )
+                log.msg('Error while appending data to file (non-float?): {:s}'.format(dat))
 
         try:
             data_bin = struct.pack(packcode,*datearray)
@@ -207,11 +207,11 @@ class ArduinoProtocol(LineReceiver):
             log.msg('Error while packing binary data')
             pass
 
-        header = "# MagPyBin %s %s %s %s %s %s %d" % (sensorid, str(self.keydict[idnum]).replace("'","").strip(), str(self.vardict[idnum]).replace("'","").strip(), str(self.unitdict[idnum]).replace("'","").strip(), str(multiplier).replace(" ",""), packcode, struct.calcsize(packcode))
+        header = "# MagPyBin {:s} {:s} {:s} {:s} {:s} {:s} {:d}".format(sensorid, str(self.keydict[idnum]).replace("'","").strip(), str(self.vardict[idnum]).replace("'","").strip(), str(self.unitdict[idnum]).replace("'","").strip(), str(multiplier).replace(" ",""), packcode, struct.calcsize(packcode))
 
         if printdata:
-            #print header
-            print timestamp, values
+            #print(header)
+            print("{} {}".format(timestamp, values))
 
         # File Operations
         dataToFile(self.outputdir, sensorid, filename, data_bin, header)
@@ -228,7 +228,7 @@ class ArduinoProtocol(LineReceiver):
 
 
     def analyzeHeader(self, line):
-        print "Getting Header"
+        print("Getting Header")
         eventlist = []
         head = line.strip().split(':')
         headernum = int(head[0].strip('H'))
@@ -240,10 +240,10 @@ class ArduinoProtocol(LineReceiver):
             an = elem.strip(']').split('[')
             try:
                 if len(an) < 1:
-                    print "Arduino: error when analyzing header"
+                    print("Arduino: error when analyzing header")
                     return
             except:
-                print "Arduino: error when analyzing header"
+                print("Arduino: error when analyzing header")
                 return
             var = an[0].split('_')
             key = var[0].strip().lower()
@@ -261,14 +261,14 @@ class ArduinoProtocol(LineReceiver):
 
         if len(eventstring) > 0:
             self.eventdict[headernum] = 'evt0,evt1,evt3,'+eventstring+',evt99'
-            print "Found components %s for ID %d" % (eventstring, headernum)
+            print("Found components {:s} for ID {:d}".format(eventstring, headernum))
             self.vardict[headernum] = varlist
             self.unitdict[headernum] = unitlist
             self.keydict[headernum] = keylist
 
 
     def getMeta(self, line):
-        print "Getting Metadata - does not support more than 99 sensors!"
+        print("Getting Metadata - does not support more than 99 sensors!")
         sensrev = '0001'
         sensid = '12345'
         try:
@@ -289,23 +289,23 @@ class ArduinoProtocol(LineReceiver):
         if 'SensorID' in metadict:
             sensid = metadict['SensorID']
         if not 'SensorName' in metadict:
-            print "No Sensorname provided - aborting"
+            print("No Sensorname provided - aborting")
             return
 
         self.sensor = metadict['SensorName']+'_'+sensid+'_'+sensrev
         self.sensordict[metanum] = self.sensor
-        print "Found Sensor %s for ID %d" % (self.sensor, metanum)
+        print("Found Sensor {:s} for ID {:d}".format(self.sensor, metanum))
 
         # Write a file to the martas directory: arduino.txt containig the sensorids
         # for each connected sensor and its components
         # This can then be used by the collector and the web scripts
 
         #except:
-        #    print "could not interpret meta information"
+        #    print("could not interpret meta information")
 
 
     def lineReceived(self, line):
-        #print "Received line", line
+        #print("Received line".format(line))
         # Create a list of sensors like for OW
         # dipatch with the appropriate sensor
 
@@ -340,8 +340,8 @@ class ArduinoProtocol(LineReceiver):
                     for event in eventlist:
                         self.wsMcuFactory.dispatch(dispatch_url, eval(event))
         else:
-            #print "Arduino: could not interpret line", line
+            #print("Arduino: could not interpret line {}".format(line))
             pass
         #except ValueError:
-        #    log.err('Unable to parse data %s' % line)
+        #    log.err("Unable to parse data {:s}".format(line))
         #    #return

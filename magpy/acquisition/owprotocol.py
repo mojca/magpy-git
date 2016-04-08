@@ -4,7 +4,7 @@ try:
     onewire = True
     owsensorlist = []
 except:
-    print "Onewire package not available"
+    print("Onewire package not available")
     onewire = False
 
 import sys, time, os, socket
@@ -67,19 +67,19 @@ if onewire:
                 self.reconnectcount = 0
             except:
                 self.reconnectcount = self.reconnectcount + 1
-                log.msg('Reconnection event triggered - Number: %d' % self.reconnectcount)
+                log.msg('Reconnection event triggered - Number: {:d}'.format(self.reconnectcount))
                 time.sleep(2)
                 if self.reconnectcount < 10:
                     self.owConnected()
                 else:
-                    print "owConnect: reconnection not possible"
+                    print("owConnect: reconnection not possible")
 
             self.oneWireInstruments(self.root)
 
 
         def connectionMade(self,root):
             # A loading eventually existing sensor list
-            print "Connection made"
+            print("Connection made")
             martasdir = [path for path, dirs, files in os.walk("/home") if path.endswith('MARTAS')][0]
             owsensorfile = os.path.join(martasdir,'owlist.csv')
             owlist = []
@@ -97,7 +97,7 @@ if onewire:
                 idlist = [el[0] for el in owlist]
             log.msg('One Wire module initialized - found the following sensors:')
             for sensor in root:
-                log.msg('Type: %s, ID: %s' % (sensor.type, sensor.id))
+                log.msg('Type: {:s}, ID: {:s}'.format(sensor.type, sensor.id))
                 # Use this list to initialize the sensor database including datalogger id and type
                 try:
                     # writing this list to the MARTAS directory
@@ -106,7 +106,7 @@ if onewire:
                     # this list tried to be opened on init
                     if not sensor.id in idlist:
                         owrow = [str(sensor.id),str(sensor.type),'typus','location','info']
-                        log.msg('One Wire: added new sensor to owlist: %s' % sensor.id)
+                        log.msg('One Wire: added new sensor to owlist: {:s}'.format(sensor.id))
                         owlist.append(owrow)
                 except:
                     log.msg('One Wire: Error when asigning new sensor list')
@@ -173,15 +173,15 @@ if onewire:
             Ch = 0.12
             a = 0.0065
             T = temp + 273.15
-            #print "Check the following, maybe numpy not active"
+            #print("Check the following, maybe numpy not active")
             #if temp < 9.1:
             #    E = 5.6402*(-0.0916 + 1*np.exp(0.06*temp))
             #else:
             #    E = 18.2194*(1.0463 - 1*np.exp(-0.0666*temp))
-            #print "E", E
+            #print("E {}".format(E))
             #x = (g/(R*(T + Ch*E + a*(h/2))))*h
             #pm = ph*np.exp(x)
-            #print "Pressure [hPA] sealevel ", pm
+            #print("Pressure [hPA] sealevel {}".format(pm))
 
             return (vad-tp)/mp*10.0
 
@@ -230,12 +230,12 @@ if onewire:
             timestamp = datetime.strftime(currenttime, "%Y-%m-%d %H:%M:%S.%f")
             outtime = datetime.strftime(currenttime, "%H:%M:%S")
             packcode = '6hLl'
-            header = "# MagPyBin %s %s %s %s %s %s %d" % (sensor.id, '[t1]', '[T]', '[degC]', '[1000]', packcode, struct.calcsize(packcode))
+            header = "# MagPyBin {:s} {:s} {:s} {:s} {:s} {:s} {:d}".format(sensor.id, '[t1]', '[T]', '[degC]', '[1000]', packcode, struct.calcsize(packcode))
 
             try:
                 # Extract data
                 temp = float(sensor.temperature)
-                #print "read Temperature: ", sensor.id, temp
+                #print("read Temperature: {} {}".format(sensor.id, temp))
 
                 # extract time data
                 datearray = self.timeToArray(timestamp)
@@ -258,7 +258,7 @@ if onewire:
                     evt5 = {'id': 0, 'value': self.hostname}
                     evt8 = {'id': 99, 'value': 'eol'}
                 except:
-                    print "OW - readTemperature: Problem assigning values to dict"
+                    print("OW - readTemperature: Problem assigning values to dict")
 
                 try:
                     self.wsMcuFactory.dispatch(dispatch_url, evt1)
@@ -268,7 +268,7 @@ if onewire:
                     self.wsMcuFactory.dispatch(dispatch_url, evt8)
                     pass
                 except ValueError:
-                    log.err('Unable to parse data at %s' % actualtime)
+                    log.err('Unable to parse data at {:s}'.format(actualtime))
             except:
                 log.err('OW - readTemperature: Lost temperature sensor -- reconnecting')
                 global owsensorlist
@@ -284,26 +284,26 @@ if onewire:
             timestamp = datetime.strftime(currenttime, "%Y-%m-%d %H:%M:%S.%f")
             outtime = datetime.strftime(currenttime, "%H:%M:%S")
             packcode = '6hLlLLLf'
-            header = "# MagPyBin %s %s %s %s %s %s %d" % (sensor.id, '[t1,var1,var2,var3,var4]', '[T,rh,vdd,vad,vis]', '[deg_C,per,V,V,V]', '[1000,100,100,100,1]', packcode, struct.calcsize(packcode))
+            header = "# MagPyBin {:s} {:s} {:s} {:s} {:s} {:s} {:d}".format(sensor.id, '[t1,var1,var2,var3,var4]', '[T,rh,vdd,vad,vis]', '[deg_C,per,V,V,V]', '[1000,100,100,100,1]', packcode, struct.calcsize(packcode))
 
             try:
                 # Extract data
-                #print "Sensor: ", sensor.id, sensortypus
+                #print("Sensor: {} {}".format(sensor.id, sensortypus))
                 try:
-                    humidity = float(ow.owfs_get('/uncached%s/HIH4000/humidity' % sensor._path))
+                    humidity = float(ow.owfs_get('/uncached{:s}/HIH4000/humidity'.format(sensor._path)))
                 except:
                     humidity = float(nan)
                 try:
-                    #print "Battery sens: T = ", sensor.temperature
+                    #print("Battery sens: T = {}".format(sensor.temperature))
                     temp = float(sensor.temperature)
-                    #print "Battery sens: VDD = ", sensor.VDD
+                    #print("Battery sens: VDD = {}".format(sensor.VDD))
                     vdd = float(sensor.VDD)
-                    #print "Battery sens: VAD = ", sensor.VAD
+                    #print("Battery sens: VAD = {}".format(sensor.VAD))
                     vad = float(sensor.VAD)
-                    #print "Battery sens: vis = ", sensor.vis
+                    #print("Battery sens: vis = {}".format(sensor.vis))
                     vis = float(sensor.vis)
                     if sensortypus == "pressure":
-                        #print "Pressure [hPa]: ", self.mpxa4100(vad,temp)
+                        #print("Pressure [hPa]: {}".format(self.mpxa4100(vad,temp)))
                         humidity = self.mpxa4100(vad,temp)
                 except:
                     log.err("OW - readBattery: Could not asign value")
@@ -341,7 +341,7 @@ if onewire:
                     evt7 = {'id': 62, 'value': vis}
                     evt8 = {'id': 99, 'value': 'eol'}
                 except:
-                    print "OW - readBattery: Problem assigning values to dict"
+                    print("OW - readBattery: Problem assigning values to dict")
 
                 try:
                     self.wsMcuFactory.dispatch(dispatch_url, evt1)
@@ -354,7 +354,7 @@ if onewire:
                     self.wsMcuFactory.dispatch(dispatch_url, evt8)
                     pass
                 except:
-                    log.err('OW - readBattery: Unable to parse data at %s' % actualtime)
+                    log.err('OW - readBattery: Unable to parse data at {:s}'.format(actualtime))
             except:
                 log.err('OW - readBattery: Lost battery sensor -- reconnecting')
                 global owsensorlist

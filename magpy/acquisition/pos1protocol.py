@@ -24,6 +24,7 @@ DEPENDENCIES:
 CALLED BY:
         magpy.bin.acquisition
 '''
+from __future__ import print_function
 
 import sys, time, os, socket
 import struct, binascii, re
@@ -122,20 +123,20 @@ def startPOS1(port,commands):
     # Once called, the device will continue to read unless interrupted.
     try:
         pos_ser = serial.Serial(port, baudrate=9600, parity='N', bytesize=8, stopbits=1)
-        print 'Connection to POS-1 made.'
+        print('Connection to POS-1 made.')
     except:
-        print 'Connection to POS-1 flopped.'
-    print ''
+        print('Connection to POS-1 flopped.')
+    print('')
 
     # Send commands and read output from serial device:
-    print 'Parameters entered:'
+    print('Parameters entered:')
     for item in commands:
         command_hex = _hexifyCommand(item,eol)
-        print 'Command:  ', command
+        print('Command:  {}'.format(command))
         ser.write(command_hex)
         response = _serReadline(pos_ser,eol)
-        print 'Response: ', response
-    print ''
+        print('Response: {}'.format(response))
+    print('')
 
 
 def _hexifyCommand(command,eol):
@@ -226,10 +227,10 @@ class Pos1Protocol(LineReceiver):
     @exportRpc("control-led")
     def controlLed(self, status):
         if status:
-            print "turn on LED"
+            print("turn on LED")
             self.transport.write('1')
         else:
-            print "turn off LED"
+            print("turn off LED")
             self.transport.write('0')
 
     @exportRpc("send-command")
@@ -248,12 +249,12 @@ class Pos1Protocol(LineReceiver):
         log.msg(' Pos1 connection lost.')
 
     def connectionMade(self):
-        log.msg('%s connected.' % self.sensor)
+        log.msg('{:s} connected.'.format(self.sensor))
 
     def processPos1Data(self, data):
         """Convert raw ADC counts into SI units as per datasheets"""
         if len(data) != 44:
-            log.err('POS1 - Protocol: Unable to parse data of length %i' % len(data))
+            log.err('POS1 - Protocol: Unable to parse data of length {:i}'.format(len(data)))
 
         currenttime = datetime.utcnow()
         date = datetime.strftime(currenttime, "%Y-%m-%d")
@@ -261,7 +262,7 @@ class Pos1Protocol(LineReceiver):
         outtime = datetime.strftime(currenttime, "%H:%M:%S")
         timestamp = datetime.strftime(currenttime, "%Y-%m-%d %H:%M:%S.%f")
         packcode = '6hLLLh6hL'
-        header = "# MagPyBin %s %s %s %s %s %s %d" % (self.sensor, '[f,df,var1,sectime]', '[f,df,var1,GPStime]', '[nT,nT,none,none]', '[1000,1000,1,1]', packcode, struct.calcsize(packcode))
+        header = "# MagPyBin {:s} {:s} {:s} {:s} {:s} {:s} {:d}".format(self.sensor, '[f,df,var1,sectime]', '[f,df,var1,GPStime]', '[nT,nT,none,none]', '[1000,1000,1,1]', packcode, struct.calcsize(packcode))
 
         try:
             # Extract data
@@ -311,9 +312,9 @@ class Pos1Protocol(LineReceiver):
 
     def dataReceived(self, data):
         dispatch_url =  "http://example.com/"+self.hostname+"/pos1#"+self.sensor+"-value"
-        #print "Got pos1 data"
+        #print("Got pos1 data")
         try:
-            #log.msg('Bufferlength:', len(self.buffer))         # debug
+            #log.msg('Bufferlength: {}'.format(len(self.buffer)))         # debug
             if len(self.buffer) == 44:
                 evt1, evt3,evt4, evt10, evt14, evt40, evt99 = self.processPos1Data(self.buffer[:44])
                 self.buffer = ''
@@ -334,7 +335,7 @@ class Pos1Protocol(LineReceiver):
             self.buffer = self.buffer + data
 
             if len(self.buffer) > 44:
-                log.msg('POS1 - Protocol: Warning: Bufferlength (%s) exceeds 44 characters, fixing...' % len(self.buffer))
+                log.msg('POS1 - Protocol: Warning: Bufferlength ({:s}) exceeds 44 characters, fixing...'.format(len(self.buffer)))
 
                 if repr(data).endswith("x00'"):    # check if last part read is end of POS string.
                     datatest = (len(self.buffer))%44
@@ -344,7 +345,7 @@ class Pos1Protocol(LineReceiver):
                         log.msg('POS1 - Protocol: It appears multiple parts came in at once, # of parts:', dataparts)
                         for i in range(dataparts):
                             split_data_string = self.buffer[i*44:(i*44)+44]
-                            log.msg('POS1 - Protocol: Processing data part # %s in string (%s)' % (str(i+1), split_data_string))
+                            log.msg('POS1 - Protocol: Processing data part # {:s} in string ({:s})'.format(str(i+1), split_data_string))
                             evt1,evt3,evt4,evt10,evt14,evt40,evt99 = self.processPos1Data(split_data_string)
                             if evt1['value'] > 0:
                                 self.wsMcuFactory.dispatch(dispatch_url, evt1)
@@ -359,10 +360,10 @@ class Pos1Protocol(LineReceiver):
                         self.buffer = ''
                     # OPTION 2: Data is bad; bit was lost.
                     else:
-                        log.msg('POS1 - Protocol: String contains bad data. Deleting. (String content: %s)' % self.buffer)
+                        log.msg('POS1 - Protocol: String contains bad data. Deleting. (String content: {:s})'.format(self.buffer))
                         self.buffer = ''              # If true, bad data. Log and delete.
                 else:    # if last part read is not end of POS string, continue reading.
                     log.msg('POS1 - Protocol: Attempting to fix buffer... last part read:', self.buffer[-10:], "Bufferlength:", len(self.buffer))
 
         except ValueError:
-            log.err('POS1 - Protocol: Unable to parse data %s' % data)
+            log.err('POS1 - Protocol: Unable to parse data {:s}'.format(data))

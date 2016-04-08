@@ -137,7 +137,7 @@ class PalmAcqProtocol(LineReceiver):
         self.eventlist = eventstring.split(',')
 
     def connectionMade(self):
-        log.msg('%s connected.' % self.sensorid)
+        log.msg('{:s} connected.'.format(self.sensorid))
 
     def extractPalmAcqData(self, line):
         """
@@ -182,12 +182,12 @@ class PalmAcqProtocol(LineReceiver):
 
                  # SOME TEST OUTPUT
                  #if len(data)> 4:
-                 #    print datetime.utcnow(), data
-                 #print data, trigger
+                 #    print("{} {}".format(datetime.utcnow(), data))
+                 #print("{} {}".format(data, trigger))
 
                  return data, trigger
              except:
-                 #print "PALMACQ: an error occurred while interpreting the hexadecimal code"
+                 #print("PALMACQ: an error occurred while interpreting the hexadecimal code")
                  return [], 'N'
         else:
              return [], 'N'
@@ -241,11 +241,11 @@ class PalmAcqProtocol(LineReceiver):
             log.msg('Error while packing binary data')
             pass
 
-        header = "# MagPyBin %s %s %s %s %s %s %d" % (self.sensorid, "[x,y,z,v,t,p,q,r]", "[x,y,z,v,t,p,q,r]", "[V,V,V,V,C,V,V,V]", str(multiplier).replace(" ",""), packcode, struct.calcsize(packcode))
+        header = "# MagPyBin {:s} {:s} {:s} {:s} {:s} {:s} {:d}".format(self.sensorid, "[x,y,z,v,t,p,q,r]", "[x,y,z,v,t,p,q,r]", "[V,V,V,V,C,V,V,V]", str(multiplier).replace(" ",""), packcode, struct.calcsize(packcode))
 
         if printdata:
-            #print header
-            print timestamp
+            #print(header)
+            print(timestamp)
 
         # File Operations
         try:

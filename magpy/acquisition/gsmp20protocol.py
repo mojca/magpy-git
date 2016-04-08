@@ -65,7 +65,7 @@ class GSMP20NSProtocol(LineReceiver):
         log.msg('GSMP20 connection lost. Perform steps to restart it!')
 
     def connectionMade(self):
-        log.msg('%s connected.' % self.sensor)
+        log.msg('{:s} connected.'.format(self.sensor))
 
     def processData(self, data):
         """
@@ -115,7 +115,7 @@ class GSMP20NSProtocol(LineReceiver):
         outtime = datetime.strftime(currenttime, "%H:%M:%S")
         timestamp = datetime.strftime(currenttime, "%Y-%m-%d %H:%M:%S.%f")
         packcode = '6hLqqqqqq'
-        header = "# MagPyBin %s %s %s %s %s %s %d" % (self.sensor, '[x,y,z,dx,dy,dz]', '[NS,N,S,SNS,SN,NNS]', '[pT,pT,pT,pT,pT,pT]', '[1000,1000,1000,1000,1000,1000]', packcode, struct.calcsize(packcode))
+        header = "# MagPyBin {:s} {:s} {:s} {:s} {:s} {:s} {:d}".format(self.sensor, '[x,y,z,dx,dy,dz]', '[NS,N,S,SNS,SN,NNS]', '[pT,pT,pT,pT,pT,pT]', '[1000,1000,1000,1000,1000,1000]', packcode, struct.calcsize(packcode))
         headerlinecoming = False
         datacoming = False
 
@@ -139,7 +139,7 @@ class GSMP20NSProtocol(LineReceiver):
                 except:
                     gpstimestamp = timestamp
 
-                #print "Timestamp", gpstime, gpstimestamp, timestamp, cdate, data_array[0]
+                #print("Timestamp {} {} {} {} {}".format(gpstime, gpstimestamp, timestamp, cdate, data_array[0]))
                 timestamp = gpstimestamp
                 intensity1 = float(data_array[2])
                 intensity2 = float(data_array[3])
@@ -154,7 +154,7 @@ class GSMP20NSProtocol(LineReceiver):
                 try:
                     gpstime = str(data_array[0])
                     gpstimestamp = datetime.strftime(datetime.strptime(gpstime, "%d%m%y%H"), "%Y-%m-%d %H:%M:%S.%f")
-                    #print "Header", gpstimestamp
+                    #print("Header {}".format(gpstimestamp))
                 except:
                     gpstimestamp = timestamp
                 headtimestamp = gpstimestamp
@@ -177,7 +177,7 @@ class GSMP20NSProtocol(LineReceiver):
                 Vsens2 = float(data_array[17])/10.              # var2
                 Vsens3 = float(data_array[18])/10.              # var3
             else:
-                #print "Found other data:", data, len(data_array)
+                #print("Found other data: {} {}".format(data, len(data_array)))
                 pass
         except:
             log.err('GSMP20 - Protocol: Data extraction error.')
@@ -186,7 +186,7 @@ class GSMP20NSProtocol(LineReceiver):
             try:
                 # extract time data
                 datearray = timeToArray(timestamp)
-                #print datearray
+                #print(datearray)
                 try:
                     datearray.append(int(intensity1*1000.))
                     datearray.append(int(intensity2*1000.))
@@ -198,7 +198,7 @@ class GSMP20NSProtocol(LineReceiver):
                     dataToFile(self.outputdir,self.sensor, cdate, data_bin, header)
                 except:
                     log.msg('GSMP20 - Protocol: Error while packing binary data')
-                    print data
+                    print(data)
                     pass
             except:
                 log.msg('GSMP20 - Protocol: Error with binary save routine')
@@ -247,7 +247,7 @@ class GSMP20NSProtocol(LineReceiver):
                     statuslst = na.split('_')
                     if len(statuslst) == 3:
                         statusname = '_'.join([statuslst[0]+'Status',statuslst[1],statuslst[2]])
-                    headheader = "# MagPyBin %s %s %s %s %s %s %d" % (statusname, '[x,y,z,f,t1,t2,dx,dy,dz,df,var1,var2,var3,var4,var5,str1,str2,str3]', '[Ts1,Ts2,Ts3,Vbat,V3,Tel,L1,L2,L3,Vps,V1,V2,V3,V5p,V5n,GPSstat,Status,OCXO]', '[degC,degC,degC,V,V,degC,A,A,A,V,V,V,V,V,V,None,None,None]', '[1,1,1,10,100,1,10,10,10,10,10,10,10,100,100,1,1,1]', headpackcode, struct.calcsize(headpackcode))
+                    headheader = "# MagPyBin {:s} {:s} {:s} {:s} {:s} {:s} {:d}".format(statusname, '[x,y,z,f,t1,t2,dx,dy,dz,df,var1,var2,var3,var4,var5,str1,str2,str3]', '[Ts1,Ts2,Ts3,Vbat,V3,Tel,L1,L2,L3,Vps,V1,V2,V3,V5p,V5n,GPSstat,Status,OCXO]', '[degC,degC,degC,V,V,degC,A,A,A,V,V,V,V,V,V,None,None,None]', '[1,1,1,10,100,1,10,10,10,10,10,10,10,100,100,1,1,1]', headpackcode, struct.calcsize(headpackcode))
                     dataToFile(self.outputdir,statusname, date, data_head, headheader)
                 except:
                     log.msg('GSMP20 - Protocol: Error while packing binary data')
@@ -265,10 +265,10 @@ class GSMP20NSProtocol(LineReceiver):
     def lineReceived(self, line):
         dispatch_url =  "http://example.com/"+self.hostname+"/sug#"+self.sensor+"-value"
         try:
-            #print line
+            #print(line)
             evt1,evt3,evt20,evt21,evt22,evt23,evt24,evt25,evt99 = self.processData(line)
             #except ValueError:
-            #log.err('GSMP20 - Protocol: Unable to parse data %s' % line)
+            #log.err('GSMP20 - Protocol: Unable to parse data {:s}'.format(line))
             ## publish event to all clients subscribed to topic
             ##
             self.wsMcuFactory.dispatch(dispatch_url, evt1)

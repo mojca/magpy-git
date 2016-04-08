@@ -34,7 +34,7 @@ if call:
             self.commands = ['11TR00005','12TR00002']
             #eol = '\x00'
             self.eol = '\r'
-            #print source
+            #print(source)
 
         def lineread(self, ser,eol):
             # FUNCTION 'LINEREAD'
@@ -48,7 +48,7 @@ if call:
             ser_str = ''
             while True:
                 char = ser.read()
-                #print char
+                #print(char)
                 if char == eol:
                     break
                 ser_str += char
@@ -76,29 +76,29 @@ if call:
                 command = self.hexify_command(command,eol)
             else:
                 command = eol+command+eol
-            #print 'Command:  %s \n ' % command.replace(eol,'')
+            #print('Command:  {:s}\n '.format(command.replace(eol,'')))
             sendtime = date2num(datetime.utcnow())
             ser.write(command)
             response = self.lineread(ser,eol)
             receivetime = date2num(datetime.utcnow())
             meantime = np.mean([receivetime,sendtime])
-            #print "Timediff", (receivetime-sendtime)*3600*24
+            #print("Timediff {}".format(receivetime-sendtime)*3600*24)
             return response, num2date(meantime).replace(tzinfo=None)
 
         def sendCommands(self):
-            #print "Connecting ..."
+            #print("Connecting ...")
             try:
                 ser = serial.Serial(self.port, baudrate=self.baudrate , parity='N', bytesize=8, stopbits=1)
-                #print 'Connection made.'
+                #print('Connection made.')
             except:
-                print 'SerialCall: Connection flopped.'
+                print('SerialCall: Connection flopped.')
 
             for item in self.commands:
                 answer, actime = self.send_command(ser,item,self.eol,hex=False)
                 success = self.analyzeResponse(answer, actime)
                 time.sleep(2)
                 if not success:
-                    log.msg('SerialCall: Could not interpret response of system when sending %s' % item)
+                    log.msg('SerialCall: Could not interpret response of system when sending {:s}'.format(item))
             ser.close()
 
 
@@ -109,7 +109,7 @@ if call:
             elif len(answer.split()) == 4 and answer.split()[0].startswith('\x03'):
                 self.writeAnemometer(answer,actime)
             else:
-                print "SerialCall: Could no analyze data"
+                print("SerialCall: Could no analyze data")
                 return False
             return True
 
@@ -208,7 +208,7 @@ if call:
 
             dispatch_url =  "http://example.com/"+self.hostname+"/ser#"+sensorid+"-value"
 
-            #print sensorid, outsidetemp
+            #print("{} {}".format(sensorid, outsidetemp))
 
             try:
                 ##### Write ASCII data file with full outpunt and timestamp
@@ -218,7 +218,7 @@ if call:
                 timestr = timestamp.replace(' ',';')
                 asciiline = ''.join([i for i in line if ord(i) < 128])
                 asciidata = timestr + ';' + asciiline.strip('\x03').strip('\x02')
-                #print asciidata
+                #print(asciidata)
                 header = '# LNM - Telegram5 plus NTP date and time at position 0 and 1'
             except:
                 log.msg('SerialCall - writeDisdro: Error while saving ascii data')
@@ -239,7 +239,7 @@ if call:
                 evt0 = {'id': 0, 'value': self.hostname}
                 evt99 = {'id': 99, 'value': 'eol'}
             except:
-                print "SerialCall - writeDisdro: Problem assigning values to dict"
+                print("SerialCall - writeDisdro: Problem assigning values to dict")
 
             try:
                 self.wsMcuFactory.dispatch(dispatch_url, evt0)
@@ -252,7 +252,7 @@ if call:
                 self.wsMcuFactory.dispatch(dispatch_url, evt39)
                 self.wsMcuFactory.dispatch(dispatch_url, evt99)
             except ValueError:
-                log.err('SerialCall - writeDisdro: Unable to parse data at %s' % actualtime)
+                log.err('SerialCall - writeDisdro: Unable to parse data at {:s}'.format(actualtime))
 
 
         def writeAnemometer(self, line, actime):
@@ -266,7 +266,7 @@ if call:
                 ser.close()
                 serialnum = answer.replace('!12SH','').strip('\x03').strip('\x02')
             except:
-                print 'writeAnemometer: Failed to get Serial number.'
+                print('writeAnemometer: Failed to get Serial number.')
 
 
             sensorid = sensor + '_' + serialnum + '_' + revision
@@ -287,12 +287,12 @@ if call:
                 windspeed = float('nan')                          # var1
                 winddirection = float('nan')                      # var2
                 virtualtemperature = float('nan')                 # t2
-                print 'writeAnemometer: Failed to interprete data.'
+                print('writeAnemometer: Failed to interprete data.')
 
             #print sensorid, windspeed
 
             packcode = '6hLlll'
-            header = "# MagPyBin %s %s %s %s %s %s %d" % (sensorid, '[t2,var1,var2]', '[Tv,V,Dir]', '[deg_C,m_s,deg]', '[10,10,1]', packcode, struct.calcsize(packcode))
+            header = "# MagPyBin {:s} {:s} {:s} {:s} {:s} {:s} {:d}".format(sensorid, '[t2,var1,var2]', '[Tv,V,Dir]', '[deg_C,m_s,deg]', '[10,10,1]', packcode, struct.calcsize(packcode))
 
             # Appending data to buffer which contains pcdate, pctime and sensordata
             # extract time data
@@ -318,7 +318,7 @@ if call:
                 evt51 = {'id': 51, 'value': winddirection}
                 evt99 = {'id': 99, 'value': 'eol'}
             except:
-                print "writeAnemometer: Problem assigning values to dict"
+                print("writeAnemometer: Problem assigning values to dict")
 
             try:
                 self.wsMcuFactory.dispatch(dispatch_url, evt1)
@@ -329,4 +329,4 @@ if call:
                 self.wsMcuFactory.dispatch(dispatch_url, evt99)
                 pass
             except:
-                log.err('writeAnemometer: Unable to parse data at %s' % actualtime)
+                log.err('writeAnemometer: Unable to parse data at {:s}'.format(actualtime))

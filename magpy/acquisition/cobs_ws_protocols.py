@@ -87,26 +87,26 @@ def dataToFile(sensorid, filedate, bindata, header):
 class FileProtocol():
     def __init__(self, wsMcuFactory):
         self.wsMcuFactory = wsMcuFactory
-        print "Init"
+        print("Init")
         self.path_or_url = ''
 
     def establishConnection(self, path_or_url):
-        log.msg('Setting path for data access to: %s ' % (path_or_url))
+        log.msg('Setting path for data access to: {:s} '.format(path_or_url))
         # Test whether path_or_url can be reachend
         self.path_or_url = path_or_url
         if os.path.isfile(self.path_or_url):
             return True
         else:
-            log.msg('File not existing: %s ' % (path_or_url))
+            log.msg('File not existing: {:s} '.format(path_or_url))
             return False
 
 
     def fileConnected(self):
         # include MagPy here: stream = pmread(path_or_url=xxx)
         # return xyzft1 whatsoever contains values
-        log.msg('Opening: %s ' % (path_or_url))
+        log.msg('Opening: {:s} '.format(path_or_url))
         with open(self.path_or_url, 'r') as myfile:
-            print (list(myfile)[-1])
+            print(list(myfile)[-1])
         myfile.closed
 
 
@@ -115,10 +115,10 @@ class FileProtocol():
 class GSM90Protocol(LineReceiver):
     def __init__(self, wsMcuFactory):
         self.wsMcuFactory = wsMcuFactory
-        print "Initialize the connection and set automatic mode (use ser.commands?)"
+        print("Initialize the connection and set automatic mode (use ser.commands?)")
 
     def initConnection(self, path_or_url):
-        log.msg('MagPy Module connected - Accessing file: %s ' % (path_or_url))
+        log.msg('MagPy Module connected - Accessing file: {:s} '.format(path_or_url))
         # Test whether path_or_url can be reachend
         self.path_or_url = path_or_url
         log.msg('MagPy Module: File connected')
@@ -213,7 +213,7 @@ class CsProtocol(LineReceiver):
             data = line.strip('$').split(',')
             evt1, evt4 = self.processData(data)
         except ValueError:
-            log.err('CS - Protocol: Unable to parse data %s' % line)
+            log.err('CS - Protocol: Unable to parse data {:s}'.format(line))
             #return
         except:
             pass
@@ -225,6 +225,6 @@ class CsProtocol(LineReceiver):
                 ##
                 self.wsMcuFactory.dispatch(dispatch_url, evt1)
                 self.wsMcuFactory.dispatch(dispatch_url, evt4)
-                #log.msg("Analog value: %s" % str(evt4))
+                #log.msg("Analog value: {:s}".format(str(evt4)))
             except:
                 log.err('CS - Protocol: wsMcuFactory error while dispatching data.')

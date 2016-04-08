@@ -1,5 +1,3 @@
-
-
 import sys, time, os, socket
 import struct, binascii, re
 from datetime import datetime, timedelta
@@ -72,11 +70,11 @@ class KernProtocol(LineReceiver):
         self.sensor = sensor
         self.hostname = socket.gethostname()
         self.outputdir = outputdir
-        print self.sensor
+        print(self.sensor)
 
 
     def connectionMade(self):
-        log.msg('%s connected.' % self.sensor)
+        log.msg('{:s} connected.'.format(self.sensor))
 
     def processKernData(self, data):
         """Convert raw ADC counts into SI units as per datasheets"""
@@ -90,7 +88,7 @@ class KernProtocol(LineReceiver):
         #header = "# MagPyBin, sensor_id, [parameterlist], [unit-conversion-list], packing string, length"
         packcode = '6hLL'
         sensorid = self.sensor
-        header = "# MagPyBin %s %s %s %s %s %s %d" % (sensorid, '[var1]', '[Weight]', '[g]', '[10000]', packcode, struct.calcsize(packcode))
+        header = "# MagPyBin {:s} {:s} {:s} {:s} {:s} {:s} {:d}".format(sensorid, '[var1]', '[Weight]', '[g]', '[10000]', packcode, struct.calcsize(packcode))
 
         try:
             val1 = data[0].split(',')
@@ -142,7 +140,7 @@ class KernProtocol(LineReceiver):
             if len(data) == 2:
                 evt0,evt1,evt3,evt38,evt99 = self.processKernData(data)
             else:
-                print 'Data error'
+                print('Data error')
 
             ## publish event to all clients subscribed to topic
             ##
@@ -164,9 +162,9 @@ class KernProtocol(LineReceiver):
                 self.wsMcuFactory.dispatch(dispatch_url, evt99)
             except:
                 pass 
-            #log.msg("Analog value: %s" % str(evt4))
+            #log.msg("Analog value: {:s}".format(str(evt4)))
 
         except ValueError:
-            log.err('Unable to parse data %s' % line)
+            log.err('Unable to parse data {:s}'.format(line))
             #return
 

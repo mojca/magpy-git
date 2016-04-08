@@ -59,15 +59,15 @@ class GSM90Protocol(LineReceiver):
         self.sensor = sensor
         self.outputdir = outputdir
         self.hostname = socket.gethostname()
-        print "Initialize the connection and set automatic mode (use ser.commands?)"
+        print("Initialize the connection and set automatic mode (use ser.commands?)")
 
     @exportRpc("control-led")
     def controlLed(self, status):
         if status:
-            print "turn on LED"
+            print("turn on LED")
             self.transport.write('1')
         else:
-            print "turn off LED"
+            print("turn off LED")
             self.transport.write('0')
 
     #def send_command(...?)
@@ -76,7 +76,7 @@ class GSM90Protocol(LineReceiver):
         log.msg('GSM90 connection lost. Perform steps to restart it!')
 
     def connectionMade(self):
-        log.msg('%s connected.' % self.sensor)
+        log.msg('{:s} connected.'.format(self.sensor))
 
     def processData(self, data):
 
@@ -86,7 +86,7 @@ class GSM90Protocol(LineReceiver):
         outtime = datetime.strftime(currenttime, "%H:%M:%S")
         timestamp = datetime.strftime(currenttime, "%Y-%m-%d %H:%M:%S.%f")
         packcode = '6hLLL6hL'
-        header = "# MagPyBin %s %s %s %s %s %s %d" % (self.sensor, '[f,var1,sectime]', '[f,errorcode,internaltime]', '[nT,none,none]', '[1000,1,1]', packcode, struct.calcsize(packcode))
+        header = "# MagPyBin {:s} {:s} {:s} {:s} {:s} {:s} {:d}".format(self.sensor, '[f,var1,sectime]', '[f,errorcode,internaltime]', '[nT,none,none]', '[1000,1,1]', packcode, struct.calcsize(packcode))
 
         try:
             # Extract data
@@ -97,20 +97,20 @@ class GSM90Protocol(LineReceiver):
                 err_code = int(data_array[3])
                 internal_t = datetime.strptime(data_array[0]+'T'+data_array[1], "%m-%d-%YT%H%M%S")
                 internal_time = datetime.strftime(internal_t, "%Y-%m-%d %H:%M:%S.%f")
-                #print internal_time
+                #print(internal_time)
             else:
                 err_code = 0
                 intensity = float(data_array[0])
                 internal_time = datetime.strftime(datetime.utcnow(), "%Y-%m-%d %H:%M:%S")
         except:
-            log.err('GSM90 - Protocol: Data formatting error. Data looks like: %s' % data)
+            log.err('GSM90 - Protocol: Data formatting error. Data looks like: {:s}'.format(data))
         try:
             # extract time data
             datearray = timeToArray(timestamp)
             try:
                 datearray.append(int(intensity*1000.))
                 datearray.append(err_code)
-                #print timestamp, internal_time
+                #print("{} {}".format(timestamp, internal_time))
                 internalarray = timeToArray(internal_time)
                 datearray.extend(internalarray)
                 data_bin = struct.pack(packcode,*datearray)
@@ -136,10 +136,10 @@ class GSM90Protocol(LineReceiver):
         dispatch_url =  "http://example.com/"+self.hostname+"/gsm#"+self.sensor+"-value"
         try:
             data = line
-            #print "Line", line
+            #print("Line {}".format(line))
             evt1, evt3, evt10, evt99 = self.processData(data)
         except ValueError:
-            log.err('GSM90 - Protocol: Unable to parse data %s' % line)
+            log.err('GSM90 - Protocol: Unable to parse data {:s}'.format(line))
         except:
             pass
 
